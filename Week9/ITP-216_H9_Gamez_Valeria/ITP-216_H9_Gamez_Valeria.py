@@ -1,9 +1,10 @@
 # Valeria Gamez, vgamez@usc.edu
 # ITP 216, Fall 2023
 # Section: 32080
-# Homework 9
+# Assignment 9
 # Description:
-# Code that extracts information from HTML file, scraping, stores the webpages locally.
+# Extracts information from concert venue HTML file, scraping, stores the webpages locally.
+# Prints concert info by venue, by date
 import os
 import ssl
 import urllib.request
@@ -35,8 +36,8 @@ def main():
     ctx = get_security_context()
     web_url = 'https://www.fondatheatre.com/events'
     web_url2 = 'https://www.theroxy.com/events'
-    file_name = 'fonda.html'
-    file_name2 = 'roxy.html'
+    file_name = 'sites/fonda.html'
+    file_name2 = 'sites/roxy.html'
     if not os.path.exists(file_name) or os.path.getsize(file_name) == 0:
         store_webpage(web_url, ctx, file_name)
     if not os.path.exists(file_name2) or os.path.getsize(file_name2) == 0:
@@ -61,20 +62,40 @@ def main():
         print('\t\t'+concert2.text.strip())
         concert_list.append(concert2.text.strip())
         dates_list.append(date.text.strip())
+    concerts_at_roxy = dict(zip(dates_list, concert_list))  # dir with all concerts and dates at roxy
 
+    print()
     print('Upcoming shows at The Fonda Theater')
-
+    fonda_list = []
+    fonda_dates_list = []
     for date, concert in zip(dates_fonda, concerts_fonda):
         print('\t'+date.text.strip())
         print('\t\t'+concert.text.strip())
-        concert_list.append(concert.text.strip())
-        dates_list.append(date.text.strip())
+        fonda_list.append(concert.text.strip())
+        fonda_dates_list.append(date.text.strip())
+    concerts_at_fonda = dict(zip(fonda_dates_list, fonda_list))  # contains all concerts and dates at fonda
 
-    print(concert_list)
-    print(dates_list)
+    # Display all the concerts, irrespective of venue, organized by date.
+    # Show the venue name with the show name.
+    all_concerts = {}  # creates a dictionary to store all the concerts
+    for date, concert in concerts_at_roxy.items():
+        if date in all_concerts:  # if the date exists, append the value, with the theater name attached (as a tuple)
+            all_concerts[date].append((concert, 'The Roxy Theater'))
+        else:  # if the date doesn't exist, create key, add value
+            all_concerts[date] = [(concert, 'The Roxy Theater')]
 
-    event_dict = dict(zip(dates_list,concert_list))
-    print(event_dict)
+    for date, concert in concerts_at_fonda.items():
+        if date in all_concerts:
+            all_concerts[date].append((concert, 'The Fonda Theater'))
+        else:
+            all_concerts[date] = [(concert, 'The Fonda Theater')]
+
+    print()
+    print('Concerts by organized by date')
+    for date, concert in all_concerts.items():
+        print('\t' + date)
+        for value in concert:
+            print('\t\t' + str(value[0] + ' @ ' + value[1]))
 
 
 if __name__ == '__main__':
